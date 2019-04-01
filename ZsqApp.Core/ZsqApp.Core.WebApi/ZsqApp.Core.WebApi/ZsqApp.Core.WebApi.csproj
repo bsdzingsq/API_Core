@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp2.0\ZsqApp.Core.WebApi.xml</DocumentationFile>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <WarningLevel>3</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DocumentationFile>bin\Debug\netcoreapp2.0\ZsqApp.Core.WebApi.xml</DocumentationFile>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+    <Folder Include="Interfacelog\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alipay.AopSdk.F2FPay.AspnetCore" Version="2.2.7" />
+    <PackageReference Include="AspectCore.Core" Version="0.5.0" />
+    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.3" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="2.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="2.3.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0" />
+    <PackageReference Include="zipkin4net" Version="1.2.3" />
+    <PackageReference Include="zipkin4net.middleware.aspnetcore" Version="1.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\ZsqApp.Core.Entity\ZsqApp.Core.Entity.csproj" />
+    <ProjectReference Include="..\..\ZsqApp.Core.Infrastructure\ZsqApp.Core.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\ZsqApp.Core.Interfaces\ZsqApp.Core.Interfaces.csproj" />
+    <ProjectReference Include="..\..\ZsqApp.Core.Models\ZsqApp.Core.Models.csproj" />
+    <ProjectReference Include="..\..\ZsqApp.Core.Services\ZsqApp.Core.Services.csproj" />
+    <ProjectReference Include="..\..\ZsqApp.Core.ViewModel\ZsqApp.Core.ViewModel.csproj" />
+  </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JSONSchema="" appsettings_1Development_1json__JSONSchema="" /></VisualStudio></ProjectExtensions>
+
+</Project>

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Alipay.AopSdk.Core" Version="2.2.7" />
+    <PackageReference Include="Alipay.AopSdk.F2FPay.AspnetCore" Version="2.2.7" />
+    <PackageReference Include="AutoMapper" Version="6.1.1" />
+    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.0.3" />
+    <PackageReference Include="MongoDB.Driver" Version="2.4.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ZsqApp.Core.Entity\ZsqApp.Core.Entity.csproj" />
+    <ProjectReference Include="..\ZsqApp.Core.Interfaces\ZsqApp.Core.Interfaces.csproj" />
+    <ProjectReference Include="..\ZsqApp.Core.Models\ZsqApp.Core.Models.csproj" />
+    <ProjectReference Include="..\ZsqApp.Core.ViewModel\ZsqApp.Core.ViewModel.csproj" />
+  </ItemGroup>
+
+</Project>

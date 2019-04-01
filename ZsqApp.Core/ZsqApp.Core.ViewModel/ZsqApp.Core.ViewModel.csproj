@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ZsqApp.Core.Entity\ZsqApp.Core.Entity.csproj" />
+    <ProjectReference Include="..\ZsqApp.Core.Infrastructure\ZsqApp.Core.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
