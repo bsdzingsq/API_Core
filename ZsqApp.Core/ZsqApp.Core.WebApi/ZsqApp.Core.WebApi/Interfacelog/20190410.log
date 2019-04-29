@@ -1,0 +1,7 @@
+2019-04-10 12:26:02,711 [5] ERROR ZsqApp.Core.WebApi.Filters.ExceptionFilter [(null)] - 异常捕获:ZsqApp.Core.Entity.MongoEntity.ExceptionLogs
+2019-04-10 12:31:19,826 [17] ERROR ZsqApp.Core.WebApi.Filters.ExceptionFilter [(null)] - 异常捕获:ZsqApp.Core.Entity.MongoEntity.ExceptionLogs
+2019-04-10 12:34:08,718 [3] ERROR ZsqApp.Core.WebApi.Filters.ExceptionFilter [(null)] - 异常捕获:ZsqApp.Core.Entity.MongoEntity.ExceptionLogs
+2019-04-10 17:05:56,596 [4] ERROR ZsqApp.Core.WebApi.Filters.ExceptionFilter [(null)] - 异常捕获:ZsqApp.Core.Entity.MongoEntity.ExceptionLogs
+2019-04-10 17:06:56,623 [4] ERROR ZsqApp.Core.WebApi.Filters.ExceptionFilter [(null)] - 异常捕获:ZsqApp.Core.Entity.MongoEntity.ExceptionLogs
+2019-04-10 17:07:32,975 [18] ERROR ZsqApp.Core.WebApi.Filters.ExceptionFilter [(null)] - 异常捕获:ZsqApp.Core.Entity.MongoEntity.ExceptionLogs
+2019-04-10 17:35:50,391 [6] ERROR ZsqApp.Core.WebApi.Filters.ExceptionFilter [(null)] - 异常捕获:ZsqApp.Core.Entity.MongoEntity.ExceptionLogs

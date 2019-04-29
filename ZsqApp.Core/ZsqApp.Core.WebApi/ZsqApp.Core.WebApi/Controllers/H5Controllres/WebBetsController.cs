@@ -5,9 +5,11 @@ using log4net;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using ZsqApp.Core.Entity.MongoEntity;
 using ZsqApp.Core.Infrastructure.SysEnum;
 using ZsqApp.Core.Infrastructure.Utilities;
 using ZsqApp.Core.Interfaces.AccoutSystem;
+using ZsqApp.Core.Interfaces.Routine;
 using ZsqApp.Core.Interfaces.System;
 using ZsqApp.Core.Interfaces.User;
 using ZsqApp.Core.Interfaces.ZhangYu;
@@ -73,7 +75,10 @@ namespace ZsqApp.Core.WebApi.Controllers.H5Controllres
         /// 趣币key配置文件
         /// </summary>
         private readonly CurrencyKeySetting _currencyKey;
-
+        /// <summary>
+        /// 初始化IRoutine
+        /// </summary>
+        protected readonly IRoutine _routine;
         /// <summary>
         /// php
         /// </summary>
@@ -89,7 +94,7 @@ namespace ZsqApp.Core.WebApi.Controllers.H5Controllres
         /// <param name="userTask"></param>
         /// <param name="currencyKey"></param>
         /// <param name="accout"></param>
-        public WebBetsController(IToken token, IBiz biz, IOptions<GameKeySetting> gameKey, IUser user, ISystems systems, IUserTask userTask, IOptions<CurrencyKeySetting> currencyKey, IAccout accout)
+        public WebBetsController(IToken token, IBiz biz, IOptions<GameKeySetting> gameKey, IUser user, ISystems systems, IUserTask userTask, IRoutine routine, IOptions<CurrencyKeySetting> currencyKey, IAccout accout)
         {
             _token = token;
             _biz = biz;
@@ -100,6 +105,7 @@ namespace ZsqApp.Core.WebApi.Controllers.H5Controllres
             _currencyKey = currencyKey.Value;
             _log = _log = LogManager.GetLogger(Startup.repository.Name, typeof(WebBetsController));
             _accout = accout;
+            _routine = routine;
         }
         /// <summary>
         /// 外置投注页面获取狗狗or渔网的游戏地址
@@ -185,7 +191,7 @@ namespace ZsqApp.Core.WebApi.Controllers.H5Controllres
                     if (sysCode == SysCode.Ok)
                     {
                         //关闭章鱼赠币
-                       // isNo = await _biz.GiveCurrencyAsync(giveCurrency);
+                        // isNo = await _biz.GiveCurrencyAsync(giveCurrency);
                         //从php赠币
                         isNo = await _accout.GiveCurrencyAsync_php(giveCurrency);
                     }
@@ -445,7 +451,7 @@ namespace ZsqApp.Core.WebApi.Controllers.H5Controllres
                     UserInfoDto userInfo = await _user.SearchUserInfoAsync(userId);
                     UserBalanceDto UserBalance = null;
                     //关闭章鱼余额查询
-                   // UserBalance = _biz.AcquireBalance(userId);
+                    // UserBalance = _biz.AcquireBalance(userId);
                     //从php获取用户余额
                     UserBalance = _accout.AcquireBalance_php(userId);
 
@@ -457,6 +463,8 @@ namespace ZsqApp.Core.WebApi.Controllers.H5Controllres
                             Balance = 0.00
                         };
                     }
+                    //查询用户渠道并返回用户信息
+                    var userchannel = await _routine.GetUserIdChannelIdAsync(userId);
                     Result = new UserInfoView
                     {
                         Balance = UserBalance.Balance,
@@ -464,7 +472,8 @@ namespace ZsqApp.Core.WebApi.Controllers.H5Controllres
                         Nickname = userInfo.Nick_name,
                         Phone = userLogin.Phone,
                         PrizeBalance = UserBalance.PrizeBalance,
-                        RealName = userInfo.Real_name
+                        RealName = userInfo.Real_name,
+                        channel= userchannel
                     };
                 }
                 else
@@ -680,7 +689,7 @@ namespace ZsqApp.Core.WebApi.Controllers.H5Controllres
 
         /// <summary>
         /// 海峡竞技获取用户信息
-        /// author：白尚德
+        /// author：白尚德</summary>
         /// <param name="Parameters"></param>
         /// <returns></returns>
         [HttpPost]
@@ -722,6 +731,55 @@ namespace ZsqApp.Core.WebApi.Controllers.H5Controllres
             return response;
         }
 
+
+        /// <summary>
+        /// H5提报ibc
+        /// author：白尚德
+        /// </summary>
+        /// <param name="Parameters"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("H5SubmitIbc")]
+        public async Task<H5ResponseViewModel<object>> H5SubmitIbc([FromBody]H5RequestViewModel Parameters)
+        {
+            H5ResponseViewModel<object> response = null;
+            var sysCode = _sys.CheckParameters(Parameters.data, "H5SubmitIbc");
+            if (sysCode == SysCode.Ok)
+            {
+                string userPhone = Parameters.data.phone;
+                string downid = Parameters.data.downid;
+                string gameType = Parameters.data.gameType;
+                string channelId = Parameters.data.channelId;
+                string timesTamp = Parameters.data.timesTamp;
+                long userId = _user.GetUserIdByPhone(userPhone);
+                ibeaconlocus ibeaconlocu = new ibeaconlocus();
+                if (userId != 0)
+                {
+                    var resignChannel = await _routine.GetUserIdChannelIdAsync(userId);
+                    ibeaconlocu.downid = downid;
+                    ibeaconlocu.userId = userId;
+                    ibeaconlocu.iBeacons = null;
+                    ibeaconlocu.phone = userPhone;
+                    ibeaconlocu.gps = null;
+                    ibeaconlocu.timestamp = timesTamp;
+                    ibeaconlocu.token = null;
+                    ibeaconlocu.userOpenid = null;
+                    ibeaconlocu.phoneType = null;
+                    ibeaconlocu.gameType = gameType;
+                    ibeaconlocu.ibcChannel = channelId;
+                    ibeaconlocu.channelId = resignChannel;
+                    ibeaconlocu.createTime = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+                    _routine.WriteIbcInfo(ibeaconlocu);
+                }
+                else
+                {
+                    sysCode = SysCode.UserExist;
+                }
+            }
+          
+            response = new H5ResponseViewModel<object>(sysCode, null);
+            return response;
+        }
     }
 }
 

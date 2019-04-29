@@ -19,5 +19,7 @@ namespace ZsqApp.Core.ViewModel.User
         public string IdCard { get; set; }
 
         public DateTime CreateTime { get; set; }
+
+        public string channel { get; set; }
     }
 }

@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using log4net;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using ZsqApp.Core.Entity.MongoEntity;
 using ZsqApp.Core.Infrastructure.Extentions;
 using ZsqApp.Core.Infrastructure.SysEnum;
 using ZsqApp.Core.Infrastructure.Utilities;
@@ -20,6 +22,7 @@ using ZsqApp.Core.ViewModel.Routine;
 using ZsqApp.Core.WebApi.Filters;
 using ZsqApp.Core.WebApi.Model;
 using ZsqApp.Core.WebApi.Utilities;
+using static ZsqApp.Core.Entity.MongoEntity.ibeaconlocus;
 
 namespace ZsqApp.Core.WebApi.Controllers
 {
@@ -247,13 +250,13 @@ namespace ZsqApp.Core.WebApi.Controllers
                 {
                     case "1":
                         key = _gameKey.Dog;
-                        // result.Url = "http://hainan.funhainan.com:8084/ZsqImage/loading/index.html?gameType=3";
-                        result.Url = "https://hainan.funhainan.com/ZsqImage/newapploading/index.html?gameType=3";
+                        result.Url = "http://hainan.funhainan.com:8084/ZsqImage/loading/index.html?gameType=3";
+                        // result.Url = "https://hainan.funhainan.com/ZsqImage/newapploading/index.html?gameType=3";
                         break;
                     case "2":
                         key = _gameKey.Fish;
-                        // result.Url = "http://hainan.funhainan.com:8084/ZsqImage/loading/index.html?gameType=2";
-                        result.Url = "https://hainan.funhainan.com/ZsqImage/newapploading/index.html?gameType=2";
+                        result.Url = "http://hainan.funhainan.com:8084/ZsqImage/loading/index.html?gameType=2";
+                        // result.Url = "https://hainan.funhainan.com/ZsqImage/newapploading/index.html?gameType=2";
                         break;
                     case "3":
                         key = _gameKey.Star;
@@ -304,5 +307,82 @@ namespace ZsqApp.Core.WebApi.Controllers
             return response;
         }
 
+        /// <summary>
+        /// 提报ibc
+        /// author:白尚德
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("SubmitIbc")]
+        public async Task<ResponseViewModel<object>> SubmitIbc([FromBody]RequestViewModel obj)
+        {
+            ResponseViewModel<object> response = null;
+            obj = JsonHelper.DeserializeJsonToObject<RequestViewModel>(Content(User.Identity.Name).Content);
+            var sysCode = SysCode.Ok;
+            ibeaconlocus ibeaconlocus = new ibeaconlocus();
+            var channelId = obj.Client.Channel;
+            var userOpenId = obj.HendInfo.UserOpenId;
+            var sessionToken = obj.HendInfo.SessionToken;
+            var timesTamp = obj.Data.timestamp;
+            string strJson = RedisHelper.StringGet($"{CacheKey.Token}{obj.HendInfo.UserOpenId}", RedisFolderEnum.token, RedisEnum.Three);
+            if (strJson != null)
+            {
+                var userLog = JsonHelper.DeserializeJsonToObject<UserLoginDto>(strJson);
+                dynamic ibcList = obj.Data.iBeacons;
+
+                string strjson = JsonHelper.SerializeObject(ibcList);
+                string strChannels = string.Empty;
+                bool result = false;
+
+                foreach (var item in ibcList)
+                {
+                    /*查找已经部署的ibc的渠道*/
+                    strChannels = await _routine.GetDevicesChannelIdAsync(int.Parse((string)item.major), int.Parse((string)item.minor), (string)item.uuid);
+                    /*更新设备电量 */
+                    // result = await _routine.UpdateIbcAsync(int.Parse((string)item.major), int.Parse((string)item.minor), (string)item.uuid, int.Parse((string)item.battery));
+                }
+                _log.InfoFormat("查询设备渠道结果:{0}更新设备电量结果:{1}", strChannels, result);
+                try
+                {
+                    var resignChannel = await _routine.GetUserIdChannelIdAsync(userLog.Userid);
+
+                    var downId = obj.Data.downid;
+                    var gps = obj.Client.Gps;
+                    var userPhone = userLog.Phone;
+                    var PhoneType = obj.Data.phoneType;
+                    var gameType = obj.Data.gameType;
+                    ibeaconlocus.downid = downId;
+                    ibeaconlocus.userId = userLog.Userid;
+                    ibeaconlocus.iBeacons = JsonHelper.DeserializeJsonToObject<List<ibcinfoList>>(strjson);
+                    ibeaconlocus.phone = userPhone;
+                    ibeaconlocus.gps = gps;
+                    ibeaconlocus.timestamp = timesTamp;
+                    ibeaconlocus.token = sessionToken;
+                    ibeaconlocus.userOpenid = userOpenId;
+                    ibeaconlocus.phoneType = PhoneType;
+                    ibeaconlocus.gameType = gameType;
+                    ibeaconlocus.ibcChannel = strChannels;
+                    ibeaconlocus.channelId = resignChannel;
+                    ibeaconlocus.createTime = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+                    /* 将ibc信息写入mongo数据库*/
+                    _routine.WriteIbcInfo(ibeaconlocus);
+                }
+                catch (System.Exception ex)
+                {
+                    _log.ErrorFormat("提报ibc接口异常{0}", ex.Message);
+                    sysCode = SysCode.Err;
+                }    
+            }
+            else
+            {
+                sysCode = SysCode.UserOpenIdisNo;
+            }
+
+            response = new ResponseViewModel<object>(sysCode, null, obj.Encrypt, _sys, obj.Secret);
+            return response;
+        }
+
+        //end
     }
 }

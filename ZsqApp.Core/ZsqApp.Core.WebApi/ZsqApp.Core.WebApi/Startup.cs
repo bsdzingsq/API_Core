@@ -176,10 +176,7 @@ namespace ZsqApp.Core.WebApi
         }
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="services"></param>
+
         //private void ConfigureAlipay(IServiceCollection services)
         //{
         //    var alipayOptions = Configuration.GetSection("Alipay").Get<AlipayOptions>();

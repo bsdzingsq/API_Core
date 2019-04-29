@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using ZsqApp.Core.Entity;
+using ZsqApp.Core.Entity.Currency;
 using ZsqApp.Core.Entity.Recharge;
 using ZsqApp.Core.Infrastructure.Extentions;
 using ZsqApp.Core.Infrastructure.Utilities;
@@ -23,6 +24,7 @@ using ZsqApp.Core.Interfaces.Recharge;
 using ZsqApp.Core.Interfaces.Routine;
 using ZsqApp.Core.Interfaces.System;
 using ZsqApp.Core.Models;
+using ZsqApp.Core.Models.Currency;
 using ZsqApp.Core.Models.Recharge;
 using ZsqApp.Core.ViewModel.Recharge;
 
@@ -38,7 +40,7 @@ namespace ZsqApp.Core.Services.Recharge
         private readonly ApplepaySetting _applepay;
         private readonly IAlipayService _alipayService;
         private readonly StraitAliPaySetting _straitAliPay;
-        
+
 
         public RechargeService(IMapper mapper, FunHaiNanContext context, IOptions<StraitAliPaySetting> straitAliPay, IOptions<AliPaySetting> options, ISystems sys, IOptions<ApplepaySetting> optionsApple, IAlipayService alipayService)
         {
@@ -414,5 +416,49 @@ namespace ZsqApp.Core.Services.Recharge
             return Parms;
 
         }
+
+        /// <summary>
+        /// 获取充值类型
+        /// author:白尚德
+        /// </summary>
+        /// <param name="userid"></param>
+        /// <param name="orderid"></param>
+        /// <returns></returns>
+        public async Task<RechargeTypeDto> GetRechargeAsync(string orderid)
+        {
+            try
+            {
+                var result = await _context.Recharge.Where(m => m.Status == 2 && m.Order_id == orderid).FirstOrDefaultAsync();
+                return _mapper.Map<RechargeEntity, RechargeTypeDto>(result);
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        }
+
+        /// <summary>
+        /// 获取充值类型
+        /// author:白尚德
+        /// </summary>
+        /// <param name="userid"></param>
+        /// <param name="orderid"></param>
+        /// <returns></returns>
+        public async Task<GiveCurrencyLogDto> GetSignAsync(string orderid)
+        {
+            try
+            {
+                var result =await _context.giveCurrencyLog.Where(m => m.Order == orderid).FirstOrDefaultAsync();
+
+                return _mapper.Map<GiveCurrencyLogEntity, GiveCurrencyLogDto>(result);
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        }
+        //end
     }
 }

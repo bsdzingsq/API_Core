@@ -16,7 +16,6 @@ namespace ZsqApp.Core.Models.ZhangYuRequest
             this.Nonce = System.Guid.NewGuid().ToString("N").Substring(0, 7);
             this.SignType = "SHA_512";
             this.Encode = true;
-
         }
 
 

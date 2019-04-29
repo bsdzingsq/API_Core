@@ -6,7 +6,6 @@ namespace ZsqApp.Core.Models.Currency
 {
     public class GiveCurrencyLogDto
     {
-
         public string Key { get; set; }
 
         public long UserId { get; set; }

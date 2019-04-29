@@ -56,6 +56,8 @@ namespace ZsqApp.Core.Services
             config.CreateMap<StraitAppVersionEntity, StraitAppVersionDto>().ReverseMap();
             config.CreateMap<StraitHomePageEntity, HomeRiding>().ReverseMap();
             config.CreateMap<StraitHomePageEntity, HomeGames2>().ReverseMap();
+            config.CreateMap<RechargeEntity, RechargeTypeDto>().ReverseMap();
+            
         }
     }
 }

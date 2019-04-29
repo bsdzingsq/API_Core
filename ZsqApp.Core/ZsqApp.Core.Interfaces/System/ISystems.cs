@@ -108,5 +108,11 @@ namespace ZsqApp.Core.Interfaces.System
         /// <returns></returns>
         string Sha512Encode(string val);
 
+        /// <summary>
+        /// 生成随机数
+        /// author：白尚德
+        /// </summary>
+        /// <returns></returns>
+        string GetRandom();
     }
 }

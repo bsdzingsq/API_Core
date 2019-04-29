@@ -1,0 +1,10 @@
+2019-04-11 11:53:05,020 [5] ERROR ZsqApp.Core.WebApi.Filters.ExceptionFilter [(null)] - 异常捕获:ZsqApp.Core.Entity.MongoEntity.ExceptionLogs
+2019-04-11 11:56:03,005 [5] ERROR ZsqApp.Core.WebApi.Filters.ExceptionFilter [(null)] - 异常捕获:ZsqApp.Core.Entity.MongoEntity.ExceptionLogs
+2019-04-11 14:51:37,559 [10] ERROR ZsqApp.Core.WebApi.Filters.ExceptionFilter [(null)] - 异常捕获:ZsqApp.Core.Entity.MongoEntity.ExceptionLogs
+2019-04-11 14:56:09,615 [6] INFO  ZsqApp.Core.WebApi.Controllers.RoutineController [(null)] - 查询设备渠道结果:010080000300001更新设备电量结果:True
+2019-04-11 15:16:36,417 [10] INFO  ZsqApp.Core.WebApi.Controllers.RoutineController [(null)] - 查询设备渠道结果:010080000300001更新设备电量结果:True
+2019-04-11 15:21:52,923 [16] INFO  ZsqApp.Core.WebApi.Controllers.RoutineController [(null)] - 查询设备渠道结果:010080000300001更新设备电量结果:True
+2019-04-11 15:23:45,866 [16] INFO  ZsqApp.Core.WebApi.Controllers.RoutineController [(null)] - 查询设备渠道结果:010080000300001更新设备电量结果:True
+2019-04-11 15:56:04,957 [17] INFO  ZsqApp.Core.WebApi.Controllers.RoutineController [(null)] - 查询设备渠道结果:010080000300001更新设备电量结果:True
+2019-04-11 15:59:12,561 [31] INFO  ZsqApp.Core.WebApi.Controllers.RoutineController [(null)] - 查询设备渠道结果:010080000300001更新设备电量结果:True
+2019-04-11 17:16:57,205 [5] ERROR ZsqApp.Core.WebApi.Filters.ExceptionFilter [(null)] - 异常捕获:ZsqApp.Core.Entity.MongoEntity.ExceptionLogs

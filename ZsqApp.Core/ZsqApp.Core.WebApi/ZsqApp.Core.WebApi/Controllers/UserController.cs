@@ -10,6 +10,7 @@ using ZsqApp.Core.Infrastructure.SysEnum;
 using ZsqApp.Core.Infrastructure.Utilities;
 using ZsqApp.Core.Interfaces.AccoutSystem;
 using ZsqApp.Core.Interfaces.Message;
+using ZsqApp.Core.Interfaces.Routine;
 using ZsqApp.Core.Interfaces.System;
 using ZsqApp.Core.Interfaces.User;
 using ZsqApp.Core.Interfaces.ZhangYu;
@@ -61,6 +62,11 @@ namespace ZsqApp.Core.WebApi.Controllers
         private readonly IAccout _accout;
 
         /// <summary>
+        /// 初始化IRoutine
+        /// </summary>
+        protected readonly IRoutine _routine;
+
+        /// <summary>
         /// 
         /// </summary>
         private readonly ILog _log;
@@ -73,7 +79,7 @@ namespace ZsqApp.Core.WebApi.Controllers
         /// <param name="token"></param>
         /// <param name="biz"></param>
         /// <param name="accout"></param>
-        public UserController(IPhoneMessage mag, ISystems sys, IUser user, IToken token, IBiz biz, IAccout accout)
+        public UserController(IPhoneMessage mag, ISystems sys, IUser user, IToken token, IRoutine routine, IBiz biz, IAccout accout)
         {
             _mag = mag;
             _sys = sys;
@@ -82,6 +88,7 @@ namespace ZsqApp.Core.WebApi.Controllers
             _biz = biz;
             _accout = accout;
             _log = LogManager.GetLogger(Startup.repository.Name, typeof(UserController));
+            _routine = routine;
         }
         #endregion
 
@@ -152,31 +159,7 @@ namespace ZsqApp.Core.WebApi.Controllers
             }
             key = $"{key}{(string)obj.Data.phone}";
             #region
-            //code = "123456"; //_sys.getrandomseed(4).tostring();
-            //if (sysCode == SysCode.Ok)
-            //{
-            //    if (RedisHelper.KeyExists(key, RedisFolderEnum.code, RedisEnum.Four)) //是否存在
-            //    {
-            //        /*重复获取*/
-            //        sysCode = SysCode.RepeatedGetCode;
-            //    }
-            //    if (sysCode == SysCode.Ok)
-            //    {
-
-            //        //!_mag.messagecode((string)obj.data.phone, code, stringextension.toint((string)obj.data.sendtype))
-            //        if (false)
-            //        {
-            //            /*获取验证码失败*/
-            //            sysCode = SysCode.GetCodeErr;
-            //        }
-            //        else
-            //        {
-            //            RedisHelper.StringSet(key, code, 10, RedisFolderEnum.code, RedisEnum.Four);
-            //        }
-            //    }
-            //}
-            #endregion
-            code = _sys.GetRandomSeed(4).ToString();
+            code = "123456"; //_sys.getrandomseed(4).tostring();
             if (sysCode == SysCode.Ok)
             {
                 if (RedisHelper.KeyExists(key, RedisFolderEnum.code, RedisEnum.Four)) //是否存在
@@ -186,7 +169,9 @@ namespace ZsqApp.Core.WebApi.Controllers
                 }
                 if (sysCode == SysCode.Ok)
                 {
-                    if (!_mag.MessageCode((string)obj.Data.phone, code, StringExtension.ToInt((string)obj.Data.sendType)))
+
+                    //!_mag.messagecode((string)obj.data.phone, code, stringextension.toint((string)obj.data.sendtype))
+                    if (false)
                     {
                         /*获取验证码失败*/
                         sysCode = SysCode.GetCodeErr;
@@ -197,6 +182,28 @@ namespace ZsqApp.Core.WebApi.Controllers
                     }
                 }
             }
+            #endregion
+            //code = _sys.GetRandomSeed(4).ToString();
+            //if (sysCode == SysCode.Ok)
+            //{
+            //    if (RedisHelper.KeyExists(key, RedisFolderEnum.code, RedisEnum.Four)) //是否存在
+            //    {
+            //        /*重复获取*/
+            //        sysCode = SysCode.RepeatedGetCode;
+            //    }
+            //    if (sysCode == SysCode.Ok)
+            //    {
+            //        if (!_mag.MessageCode((string)obj.Data.phone, code, StringExtension.ToInt((string)obj.Data.sendType)))
+            //        {
+            //            /*获取验证码失败*/
+            //            sysCode = SysCode.GetCodeErr;
+            //        }
+            //        else
+            //        {
+            //            RedisHelper.StringSet(key, code, 10, RedisFolderEnum.code, RedisEnum.Four);
+            //        }
+            //    }
+            //}
             response = new ResponseViewModel<VerifyTokenView>(sysCode, null, obj.Encrypt, _sys, obj.Secret);
             return response;
         }
@@ -415,7 +422,7 @@ namespace ZsqApp.Core.WebApi.Controllers
                 //userBalance = _biz.AcquireBalance(userLog.Userid);
                 //从php获取用户余额
                 userBalance = _accout.AcquireBalance_php(userLog.Userid);
-                _log.Info($"从php获取用户余额:{userBalance}{userBalance.Balance}");
+                _log.InfoFormat("从php获取用户余额:{0},用户信息{1}",JsonHelper.SerializeObject(userBalance),JsonHelper.SerializeObject(UserInfo));
                 if (userBalance == null)
                 {
                     userBalance = new UserBalanceDto
@@ -424,6 +431,8 @@ namespace ZsqApp.Core.WebApi.Controllers
                         Balance = 0.00
                     };
                 }
+                //查询用户渠道并返回用户信息
+                var userchannel = await _routine.GetUserIdChannelIdAsync(userLog.Userid);
                 result = new UserInfoView
                 {
                     Balance = userBalance.Balance,
@@ -431,7 +440,8 @@ namespace ZsqApp.Core.WebApi.Controllers
                     Nickname = UserInfo.Nick_name,
                     Phone = userLog.Phone,
                     PrizeBalance = userBalance.PrizeBalance,
-                    RealName = UserInfo.Real_name
+                    RealName = UserInfo.Real_name,
+                    channel= userchannel
                 };
 
             }
@@ -977,31 +987,7 @@ namespace ZsqApp.Core.WebApi.Controllers
             }
             key = $"{key}{(string)obj.Data.phone}";
             #region
-            //code = "123456"; //_sys.getrandomseed(4).tostring();
-            //if (sysCode == SysCode.Ok)
-            //{
-            //    if (RedisHelper.KeyExists(key, RedisFolderEnum.code, RedisEnum.Four)) //是否存在
-            //    {
-            //        /*重复获取*/
-            //        sysCode = SysCode.RepeatedGetCode;
-            //    }
-            //    if (sysCode == SysCode.Ok)
-            //    {
-
-            //        //!_mag.messagecode((string)obj.data.phone, code, stringextension.toint((string)obj.data.sendtype))
-            //        if (false)
-            //        {
-            //            /*获取验证码失败*/
-            //            sysCode = SysCode.GetCodeErr;
-            //        }
-            //        else
-            //        {
-            //            RedisHelper.StringSet(key, code, 10, RedisFolderEnum.code, RedisEnum.Four);
-            //        }
-            //    }
-            //}
-            #endregion
-            code = _sys.GetRandomSeed(4).ToString();
+            code = "123456"; //_sys.getrandomseed(4).tostring();
             if (sysCode == SysCode.Ok)
             {
                 if (RedisHelper.KeyExists(key, RedisFolderEnum.code, RedisEnum.Four)) //是否存在
@@ -1011,7 +997,9 @@ namespace ZsqApp.Core.WebApi.Controllers
                 }
                 if (sysCode == SysCode.Ok)
                 {
-                    if (!_mag.StraitMessageCode((string)obj.Data.phone, code, StringExtension.ToInt((string)obj.Data.sendType)))
+
+                    //!_mag.messagecode((string)obj.data.phone, code, stringextension.toint((string)obj.data.sendtype))
+                    if (false)
                     {
                         /*获取验证码失败*/
                         sysCode = SysCode.GetCodeErr;
@@ -1022,6 +1010,28 @@ namespace ZsqApp.Core.WebApi.Controllers
                     }
                 }
             }
+            #endregion
+            //code = _sys.GetRandomSeed(4).ToString();
+            //if (sysCode == SysCode.Ok)
+            //{
+            //    if (RedisHelper.KeyExists(key, RedisFolderEnum.code, RedisEnum.Four)) //是否存在
+            //    {
+            //        /*重复获取*/
+            //        sysCode = SysCode.RepeatedGetCode;
+            //    }
+            //    if (sysCode == SysCode.Ok)
+            //    {
+            //        if (!_mag.StraitMessageCode((string)obj.Data.phone, code, StringExtension.ToInt((string)obj.Data.sendType)))
+            //        {
+            //            /*获取验证码失败*/
+            //            sysCode = SysCode.GetCodeErr;
+            //        }
+            //        else
+            //        {
+            //            RedisHelper.StringSet(key, code, 10, RedisFolderEnum.code, RedisEnum.Four);
+            //        }
+            //    }
+            //}
             response = new ResponseViewModel<VerifyTokenView>(sysCode, null, obj.Encrypt, _sys, obj.Secret);
             return response;
         }

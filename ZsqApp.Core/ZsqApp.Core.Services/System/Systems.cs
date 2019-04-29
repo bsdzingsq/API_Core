@@ -977,10 +977,96 @@ namespace ZsqApp.Core.Services.System
                         }
                     }
                     break;
+                case "GetRechangeType"://获取用户的充值类型
+                    {
+                        if (StringExtension.IsBlank((string)data.OrdersList))
+                        {
+                            return SysCode.LackParameter;
+                        }
+                    }
+                    break;
+                case "GetCoinDonation"://518与签到类别
+                    {
+                        if (StringExtension.IsBlank((string)data.SignList))
+                        {
+                            return SysCode.LackParameter;
+                        }
+                    }
+                    break;
+                case "GetUserIdChannel"://根据id查询渠道
+                    {
+                        if (StringExtension.IsBlank((string)data.userId) || StringExtension.IsBlank((string)data.stime))
+                        {
+                            return SysCode.LackParameter;
+                        }
+                        if (!StringExtension.Isint((string)data.userId))
+                        {
+                            return SysCode.ErrParameter;
+                        }
+                        if (!StringExtension.IsDate((string)data.stime))
+                        {
+                            return SysCode.DateTimeErr;
+                        }
+
+                    }
+                    break;
+                case "GetUserNumber"://根据时间获取各个渠道注册人数
+                    {
+                        if (StringExtension.IsBlank((string)data.StartTime) || StringExtension.IsBlank((string)data.OverTime))
+                        {
+                            return SysCode.LackParameter;
+                        }
+                    }
+                    break;
+                case "SubmitIbc"://提报ibc
+                    {
+                        if (StringExtension.IsBlank((string)data.downid) || StringExtension.IsBlank((string)data.timestamp)
+                           || StringExtension.IsBlank((string)data.gameType) || StringExtension.IsBlank((string)data.phoneType))
+                        {
+                            return SysCode.LackParameter;
+                        }
+                        if (data.iBeacons==null)
+                        {
+                            return SysCode.EmptyParameter;
+                        }
+                    }
+                    break;
+                case "H5SubmitIbc"://h5提报ibc
+                    {
+                        if (StringExtension.IsBlank((string)data.downid) || StringExtension.IsBlank((string)data.timestamp)
+                            || StringExtension.IsBlank((string)data.phone) || StringExtension.IsBlank((string)data.gameType)
+                            || StringExtension.IsBlank((string)data.channelId))
+                        {
+                            return SysCode.EmptyParameter;
+                        }
+                        if (!StringExtension.IsMobile((string)data.phone))
+                        {
+                            return SysCode.PhoneFormatErr;
+                        }
+                        if (!StringExtension.IsChannelId((string)data.downid)|| !StringExtension.IsChannelId((string)data.downid))
+                        {
+                            return SysCode.ChannelErr;
+                        }
+                    }
+                    break;
                 default:
                     break;
             }
             return SysCode.Ok;
+        }
+
+        /// <summary>
+        /// 生成随机数
+        /// </summary>
+        /// <returns></returns>
+        public string GetRandom()
+        {
+            object _lock = new object();
+            lock (_lock)
+            {
+                Random ran = new Random();
+                return "Tree" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ran.Next(1000, 9999).ToString();
+            }
         }
     }
 }

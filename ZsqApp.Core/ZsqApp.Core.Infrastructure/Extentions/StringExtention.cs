@@ -32,6 +32,59 @@ namespace ZsqApp.Core.Infrastructure.Extentions
         }
 
         /// <summary>
+        /// 判断日期格式
+        /// </summary>
+        /// <param name="strDate"></param>
+        /// <returns></returns>
+        public static bool IsDate(string strDate)
+        {
+            try
+            {
+                DateTime.Parse(strDate);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 数字和字节之间互转
+        /// </summary>
+        /// <param name="num"></param>
+        /// <returns></returns>
+        public static int IntToBitConverter(int num)
+        {
+            int temp = 0;
+            byte[] bytes = BitConverter.GetBytes(num);//将int32转换为字节数组
+            temp = BitConverter.ToInt32(bytes, 0);//将字节数组内容再转成int32类型
+            return temp;
+        }
+
+        /// <summary>
+        /// 赠币状态
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static string GiveCurrencyStatu(string key)
+        {
+            var str = "";
+            switch (key)
+            {
+                case "signIn":
+                    str = "1";
+                    break;
+                case "vip170522#2":
+                    str = "2";
+                    break;
+                default:
+                    break;
+            }
+            return str;
+        }
+
+        /// <summary>
         /// 获取扩展名
         /// </summary>
         /// <param name="s"></param>
@@ -72,10 +125,10 @@ namespace ZsqApp.Core.Infrastructure.Extentions
         /// <param name="s"></param>
         /// <returns></returns>
         public static bool IsChannelId(this string s)
-         {
-             return s.IsBlank() || Regex.IsMatch(s, @"^\d{15}$");
+        {
+            return s.IsBlank() || Regex.IsMatch(s, @"^\d{15}$");
         }
-        
+
         /// <summary>
         /// 匹配8到12位字符
         /// </summary>
@@ -84,7 +137,7 @@ namespace ZsqApp.Core.Infrastructure.Extentions
         public static bool IsPwd(this string s)
         {
             return s.IsBlank() || Regex.IsMatch(s, @"^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{6,12}$");
-            
+
         }
 
         /// <summary>
@@ -240,14 +293,14 @@ namespace ZsqApp.Core.Infrastructure.Extentions
         /// 根据级别修改渠道号
         /// </summary>
         /// <returns></returns>
-        public static string UpdateChannelId(string channelId,int level)
+        public static string UpdateChannelId(string channelId, int level)
         {
             string strNewchannelId = "";
-            if (level==1)
+            if (level == 1)
             {
-                strNewchannelId = channelId.Substring(0,5)+"0000000000";
+                strNewchannelId = channelId.Substring(0, 5) + "0000000000";
             }
-            else if(level==2)
+            else if (level == 2)
             {
                 strNewchannelId = channelId.Substring(0, 10) + "00000";
             }
@@ -265,7 +318,7 @@ namespace ZsqApp.Core.Infrastructure.Extentions
         /// <param name="startIndex"></param>
         /// <param name="overIndex"></param>
         /// <returns></returns>
-        public static string CutOutString(string val, int startIndex,  int overIndex)
+        public static string CutOutString(string val, int startIndex, int overIndex)
         {
             if (IsBlank(val))
                 return null;

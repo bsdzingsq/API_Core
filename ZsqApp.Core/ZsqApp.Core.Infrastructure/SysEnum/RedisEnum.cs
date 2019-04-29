@@ -130,5 +130,11 @@ namespace ZsqApp.Core.Infrastructure.SysEnum
         /// </summary>
         [Description("Token")]
         token,
+
+        /// <summary>
+        /// 数据统计
+        /// </summary>
+        [Description("渠道树")]
+        ChannelTree,
     }
 }

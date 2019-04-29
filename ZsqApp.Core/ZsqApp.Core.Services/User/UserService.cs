@@ -146,7 +146,7 @@ namespace ZsqApp.Core.Services.User
             {
                 entity.Nick_name = name;
                 return await _context.SaveChangesAsync() > 0;
-               
+
             }
             return true;
         }
@@ -286,6 +286,24 @@ namespace ZsqApp.Core.Services.User
             var count = await _context.Register.CountAsync(m => m.Userid == userId);
             return count > 0;
         }
+
+        /// <summary>
+        /// 根据时间和渠道获取用户注册人数
+        /// author:白尚德
+        /// </summary>
+        /// <param name="userid">用户id</param>
+        /// <returns></returns>
+        public async Task<List<RegisterNumberDto>> GetResignCountAsync(DateTime startTime, DateTime ovrtTime)
+        {
+            var entity = await _context.Register.Where(m => m.Createtime >= startTime && m.Createtime <= ovrtTime).GroupBy(m => m.Channel)
+                .Select(item => new RegisterNumberDto
+                {
+                    num = item.Count(),
+                    channel = item.Key
+                }).ToListAsync();
+            return entity;
+        }
+        //end
     }
 
 }

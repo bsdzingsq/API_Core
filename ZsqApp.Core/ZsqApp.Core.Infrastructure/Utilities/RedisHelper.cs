@@ -24,10 +24,10 @@ namespace ZsqApp.Core.Infrastructure.Utilities
         //private static string _strPwd = "distGame";
         //private static string _strConn = "114.242.17.126:7096";
         //private static string _strPwd = "zingsq123";
-        //private static string _strConn = "120.79.193.71:6379";
-        //private static string _strPwd = "";
-        private static string _strConn = "r-wz9ae14bd2017df4.redis.rds.aliyuncs.com";
-        private static string _strPwd = "L9gr0aLcPyG2E5uo";
+        private static string _strConn = "120.79.193.71:6379";
+        private static string _strPwd = "";
+        //private static string _strConn = "r-wz9ae14bd2017df4.redis.rds.aliyuncs.com";
+        //private static string _strPwd = "L9gr0aLcPyG2E5uo";
         //private static string _strConn = "172.18.248.187:6379";
         //private static string _strPwd = "zsqtest";
         private static int _strDb = -1;

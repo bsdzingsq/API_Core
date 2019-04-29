@@ -14,6 +14,7 @@ using ZsqApp.Core.Interfaces.System;
 using ZsqApp.Core.Models;
 using ZsqApp.Core.Models.Currency;
 using ZsqApp.Core.Models.PHPRequest;
+using ZsqApp.Core.Models.Recharge;
 using ZsqApp.Core.Models.User;
 using ZsqApp.Core.Models.ZhangYuRequest;
 
@@ -32,7 +33,7 @@ namespace ZsqApp.Core.Services.AccoutSystem
         protected readonly FunHaiNanContext _context;
         private readonly IOptions<HaiXiaSetting> _haixiaoptions;
         private readonly IOptions<HaiXiaPhpSetting> _phpoptions;
-        
+
         /// <summary>
         /// lo4
         /// </summary>
@@ -354,13 +355,13 @@ namespace ZsqApp.Core.Services.AccoutSystem
         {
             ConsumePhpDto consumephp = new ConsumePhpDto
             {
-               GameKey= _phpoptions.Value.gameKey,
-               GameSetId=consume.forderId,
-               OrderId=consume.forderId,
-               UserId=consume.fuserId,
-               Amount=consume.amount,
-               OperateTime = Convert.ToInt64(DateTime.Now.ToOADate()),
-               Description=consume.description
+                GameKey = _phpoptions.Value.gameKey,
+                GameSetId = consume.forderId,
+                OrderId = consume.forderId,
+                UserId = consume.fuserId,
+                Amount = consume.amount,
+                OperateTime = Convert.ToInt64(DateTime.Now.ToOADate()),
+                Description = consume.description
 
             };
             PHPRequest Request = new PHPRequest();
@@ -419,7 +420,7 @@ namespace ZsqApp.Core.Services.AccoutSystem
             var response = JsonHelper.DeserializeJsonToObject<ZhangYuResponse>(_sys.PostJsonData(strUrl, strJson, Encoding.UTF8));
             _log.Info($"根据兑出订单号查询订单状态返回值{JsonHelper.SerializeObject(response)}");
             statusResult = JsonHelper.DeserializeJsonToObject<CostorderStatusResult>(_sys.Base64Decode(response.Data));
-            if (statusResult.status=="1")
+            if (statusResult.status == "1")
             {
                 result.code = 0;
                 result.message = "成功";
@@ -443,9 +444,9 @@ namespace ZsqApp.Core.Services.AccoutSystem
             CostOrderStatusPhpResponse costStatus = new CostOrderStatusPhpResponse
             {
                 type = (int)1,
-                gameKey= _phpoptions.Value.gameKey,
-                gameSetId =forderId,
-                orderId=forderId
+                gameKey = _phpoptions.Value.gameKey,
+                gameSetId = forderId,
+                orderId = forderId
             };
             PHPRequest Request = new PHPRequest();
             Request.AppKey = _phpoptions.Value.appKey;
@@ -455,7 +456,7 @@ namespace ZsqApp.Core.Services.AccoutSystem
             _log.Info($"根据兑出订单号查询订单状态请求参数{strJson}");
             string strUrl = string.Format(_phpoptions.Value.url, "v1", "gameFind");
             var response = JsonHelper.DeserializeJsonToObject<ZhangYuResponse>(_sys.PostJsonData(strUrl, strJson, Encoding.UTF8));
-           // statusResult = JsonHelper.DeserializeJsonToObject<CostorderStatusPhpResult>(response);
+            // statusResult = JsonHelper.DeserializeJsonToObject<CostorderStatusPhpResult>(response);
 
             _log.Info($"根据兑出订单号查询订单状态返回值{JsonHelper.SerializeObject(response)}");
             //statusResult = JsonHelper.DeserializeJsonToObject<CostorderStatusPhpResult>(_sys.Base64Decode(response.Data));
@@ -471,6 +472,35 @@ namespace ZsqApp.Core.Services.AccoutSystem
             return result;
         }
 
+        /// <summary>
+        /// 获取微信公众号充值信息
+        /// </summary>
+        /// <param name="strJson"></param>
+        /// <returns></returns>
+        public List<orderInfoList> GetRechargeTypes(string strJson)
+        {
+            try
+            {
+                RechargesRequest requests = new RechargesRequest();
+                requests.data = strJson;
+                string strJsons = JsonHelper.SerializeObject(requests);
+                string strUrl = "http://192.168.1.117:9711/api/order/orderinfomation";
+                _log.InfoFormat("获取微信公众号充值信息请求参数：{0}", requests);
+                var response = JsonHelper.DeserializeJsonToObject<RechargesResponse>(_sys.PostJsonData(strUrl, strJsons, Encoding.UTF8));
+                _log.InfoFormat("获取微信公众号充值信息返回参数：{0}", JsonHelper.SerializeObject(response));
+                if (response.Code==0)
+                {
+                    var result = response.Data.orderInfo;
+                    return result;
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        }
         //end
     }
 }

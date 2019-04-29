@@ -120,6 +120,12 @@ namespace ZsqApp.Core.ViewModel.ErrCodeEnum
         GameUrlIsNot = 2003,
 
         [Description("用户不一致")]
-        UserIsNo = 2004
+        UserIsNo = 2004,
+
+        [Description("日期格式错误")]
+        DateTimeErr = 2005,
+
+        [Description("数据未变化")]
+        DataisNoUpt = 2006
     }
 }

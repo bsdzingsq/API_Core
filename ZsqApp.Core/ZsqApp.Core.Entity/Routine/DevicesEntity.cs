@@ -30,5 +30,7 @@ namespace ZsqApp.Core.Entity.Routine
         public string Number { get; set; }
         public string Remark { get; set; }
         public Nullable<int> ScenesID { get; set; }
+        public byte Battery { get; set; }
+        public DateTime UpdateTimeB { get; set; }
     }
 }

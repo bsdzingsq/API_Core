@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ZsqApp.Core.Models.User;
 using ZsqApp.Core.ViewModel.ErrCodeEnum;
@@ -160,5 +161,13 @@ namespace ZsqApp.Core.Interfaces.User
         /// <param name="userId">用户id</param>
         /// <returns></returns>
         Task<bool> JudgeUserIdIsNoAsync(long userId);
+
+        /// <summary>
+        /// 根据时间和渠道获取用户注册人数
+        /// author:白尚德
+        /// </summary>
+        /// <param name="userid">用户id</param>
+        /// <returns></returns>
+        Task<List<RegisterNumberDto>> GetResignCountAsync(DateTime startTime, DateTime ovrtTime);
     }
 }

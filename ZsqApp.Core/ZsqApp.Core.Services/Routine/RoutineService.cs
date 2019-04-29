@@ -4,9 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using ZsqApp.Core.Entity;
+using ZsqApp.Core.Entity.MongoEntity;
 using ZsqApp.Core.Entity.Routine;
 using ZsqApp.Core.Infrastructure.Extentions;
+using ZsqApp.Core.Infrastructure.Utilities;
 using ZsqApp.Core.Interfaces.Routine;
 using ZsqApp.Core.Interfaces.ZhangYu;
 using ZsqApp.Core.Models.Routine;
@@ -144,7 +148,8 @@ namespace ZsqApp.Core.Services.Routine
                 {
                     /*游戏数组*/
                     string[] gameKeyArray;
-                    var GuessMatch = _biz.AcquireGuessMatch(); //从章鱼拿到竞猜数量数                           
+                    //var GuessMatch = _biz.AcquireGuessMatch(); //从章鱼拿到竞猜数量数  
+                    var GuessMatch = _biz.NewAcquireGuessMatch();//从php获取竞猜数量
                     switch (channelIdType)
                     {
                         case 0:
@@ -162,7 +167,9 @@ namespace ZsqApp.Core.Services.Routine
                     var gameInfoEntity = await _context.GameInfo.Where(c => arrId.Contains(c.Id) && c.Stateus == 1).ToListAsync();
                     foreach (var item in gameInfoEntity)
                     {
-                        var guessMatchInfo = GuessMatch != null ? GuessMatch.data.Where(c => c.displayName == item.Game_Name).FirstOrDefault() : null; //获取游戏数量
+                        //var guessMatchInfo = GuessMatch != null ? GuessMatch.data.Where(c => c.displayName == item.Game_Name).FirstOrDefault() : null; //获取游戏数量
+                        //int guessMatchCount = guessMatchInfo == null ? 1 : guessMatchInfo.matchCount;
+                        var guessMatchInfo = GuessMatch != null ? GuessMatch.list.Where(c => c.displayName == item.Game_Name).FirstOrDefault() : null;
                         int guessMatchCount = guessMatchInfo == null ? 1 : guessMatchInfo.matchCount;
                         if (guessMatchCount != 0 || guessMatchInfo == null)
                         {
@@ -271,5 +278,77 @@ namespace ZsqApp.Core.Services.Routine
             }
             return null;
         }
+
+        /// <summary>
+        /// 根据用户id获取渠道号（先获取新渠道表如果没有获取用户注册渠道）
+        /// author:白尚德
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<string> GetUserIdChannelIdAsync(long userId)
+        {
+            string ChannelId = "";
+            ChannelId = await _hncontext.NewUserChannel.Where(c => c.UserId == userId).OrderByDescending(c => c.CreateTime).Select(c => c.NewChannelId).FirstOrDefaultAsync();
+            if (ChannelId == null)
+            {
+                ChannelId = await _context.Register.Where(c => c.Userid == userId).Select(c => c.Channel).FirstOrDefaultAsync();
+            }
+            return ChannelId;
+        }
+
+        /// <summary>
+        /// 提报ibc数据写如mongo
+        /// author:白尚德
+        /// </summary>
+        /// <param name="log"></param>
+        public async void WriteIbcInfo(ibeaconlocus ibeaconlocus)
+        {
+            var client = new MongoClient("mongodb://120.77.206.77:27017");
+            var db = client.GetDatabase("ibcInfoTest");
+            var collection = db.GetCollection<ibeaconlocus>("ibeaconlocus");
+            await collection.InsertOneAsync(ibeaconlocus);
+        }
+
+        /// <summary>
+        /// 更新设备表电量
+        /// Author：白尚德
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
+        public async Task<bool> UpdateIbcAsync(int major, int minor, string uuid, int battery)
+        {
+            var dbSet = _ibccontext.Devices;
+            var entity = await dbSet.Where(m => m.major == major && m.minor == minor && m.Proximityuuid == uuid).FirstOrDefaultAsync();
+            entity.Battery = (byte)battery;
+            entity.UpdateTimeB = DateTime.Now;
+            return await _ibccontext.SaveChangesAsync() > 0;
+        }
+
+        /// <summary>
+        /// 从mongo获取用户ibc渠道
+        /// Author：白尚德
+        /// </summary>
+        /// <returns></returns>
+        public string GetIbcChannel(string userid, DateTime dateTime)
+        {
+            var client = new MongoClient("mongodb://120.77.206.77:27017");
+            var db = client.GetDatabase("ibcInfoTest");
+            var collection = db.GetCollection<ibeaconlocus>("ibeaconlocus");
+            long usid = long.Parse(userid);
+            // var filter = Builders<ibeaconlocus>.Filter.Where(m=>m.userId=usid);
+            //string time = TimeHelper.ConvertDateTimeToInt(dateTime).ToString();
+            var result = collection.Find(m => m.userId == usid).SortByDescending(m => m.createTime).ToList();
+            if (result.Count != 0)
+            {
+
+                var sChannel = result.Where(m => m.createTime < dateTime).FirstOrDefault();
+                if (sChannel==null)
+                {
+                    return null;
+                }
+                return sChannel.ibcChannel;
+            }
+            return null;
+        }
+        //end
     }
 }

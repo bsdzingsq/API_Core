@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using log4net;
 using Microsoft.AspNetCore.Cors;
@@ -9,13 +10,17 @@ using ZsqApp.Core.Infrastructure.Extentions;
 using ZsqApp.Core.Infrastructure.SysEnum;
 using ZsqApp.Core.Infrastructure.Utilities;
 using ZsqApp.Core.Interfaces.AccoutSystem;
+using ZsqApp.Core.Interfaces.Channel;
 using ZsqApp.Core.Interfaces.Recharge;
+using ZsqApp.Core.Interfaces.Routine;
 using ZsqApp.Core.Interfaces.System;
 using ZsqApp.Core.Interfaces.User;
 using ZsqApp.Core.Interfaces.ZhangYu;
 using ZsqApp.Core.Models;
+using ZsqApp.Core.Models.Currency;
 using ZsqApp.Core.Models.PHPRequest;
 using ZsqApp.Core.Models.Recharge;
+using ZsqApp.Core.Models.Routine;
 using ZsqApp.Core.Models.User;
 using ZsqApp.Core.Models.ZhangYuRequest;
 using ZsqApp.Core.ViewModel.ErrCodeEnum;
@@ -69,6 +74,12 @@ namespace ZsqApp.Core.WebApi.Controllers
         /// 海峡竞技
         /// </summary>
         private readonly IOptions<HaiXiaSetting> _options;
+
+        private readonly IRoutine _routine;
+        /// <summary>
+        /// 获取渠道树
+        /// </summary>
+        private readonly IChannel _channel;
         /// <summary>
         /// 构造函数注入
         /// </summary>
@@ -78,8 +89,9 @@ namespace ZsqApp.Core.WebApi.Controllers
         /// <param name="user"></param>
         /// <param name="recharge"></param>
         /// <param name="accout"></param>
-        /// <param name="UserTestid"></param>
-        public ExternalController(ISystems sys, IToken token, IBiz biz, IUser user, IRecharge recharge, IAccout accout, IOptions<HaiXiaSetting> options)
+        /// <param name="options"></param>
+        /// <param name="routine"></param>
+        public ExternalController(ISystems sys, IToken token, IBiz biz, IUser user, IRecharge recharge, IAccout accout, IOptions<HaiXiaSetting> options, IRoutine routine, IChannel channel)
         {
             _sys = sys;
             _token = token;
@@ -89,6 +101,8 @@ namespace ZsqApp.Core.WebApi.Controllers
             _recharge = recharge;
             _accout = accout;
             _options = options;
+            _routine = routine;
+            _channel = channel;
         }
         #endregion
 
@@ -187,6 +201,8 @@ namespace ZsqApp.Core.WebApi.Controllers
                 UserBalance = _accout.AcquireBalance_php(userId);
 
                 UserLoginDto userLogin = await _user.GetUserLoginAsync(userId);
+                //查询用户渠道并返回用户信息
+                var userchannel = await _routine.GetUserIdChannelIdAsync(userId);
                 result = new UserInfoView
                 {
                     Balance = UserBalance.Balance,
@@ -195,7 +211,8 @@ namespace ZsqApp.Core.WebApi.Controllers
                     Phone = userLogin.Phone,
                     PrizeBalance = UserBalance.PrizeBalance,
                     RealName = UserInfo.Real_name,
-                    CreateTime = UserInfo.Createtime
+                    CreateTime = UserInfo.Createtime,
+                    channel = userchannel
                 };
             }
             respones = new ExternalResponesViewModel<UserInfoView>(sysCode, _sys, result);
@@ -520,5 +537,179 @@ namespace ZsqApp.Core.WebApi.Controllers
             respones = new ExternalResponesViewModel<object>(sysCode, _sys, null);
             return respones;
         }
+
+        /// <summary>
+        /// 获取用户的充值类型
+        ///  author:白尚德
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("GetRechangeType")]
+        public async Task<ExternalResponesViewModel<List<RechargeTypeDto>>> GetRechangeType([FromBody]ExternalRequesViewModel obj)
+        {
+            ExternalResponesViewModel<List<RechargeTypeDto>> respones = null;
+            obj = JsonHelper.DeserializeJsonToObject<ExternalRequesViewModel>(Content(User.Identity.Name).Content);
+            var sysCode = SysCode.Ok;
+            string orderList = obj.Data.OrdersList;
+            List<RechargeTypeDto> rechargeList = new List<RechargeTypeDto>();
+            var results = _accout.GetRechargeTypes(Convert.ToString(orderList));
+            foreach (var item in results)
+            {
+                RechargeTypeDto rechargeType = new RechargeTypeDto();
+                rechargeType.UserId = item.UserId.IsBlank() ? -1 : long.Parse(item.UserId);
+                rechargeType.Order_id = item.OrderId;
+                rechargeType.Pay_type = item.PayType;
+                rechargeList.Add(rechargeType);
+            }
+            string[] strOrder = orderList.Split(',');
+            foreach (var item in strOrder)
+            {
+                var result = await _recharge.GetRechargeAsync(item);
+                if (result != null)
+                {
+                    rechargeList.Add(result);
+                }
+            }
+            respones = new ExternalResponesViewModel<List<RechargeTypeDto>>(sysCode, _sys, sysCode == SysCode.Ok ? rechargeList : null);
+            return respones;
+        }
+
+        /// <summary>
+        /// 518与签到类别
+        ///  author:白尚德
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("GetCoinDonation")]
+        public async Task<ExternalResponesViewModel<List<GiveCurrencyLogDto>>> GetCoinDonation([FromBody]ExternalRequesViewModel obj)
+        {
+            ExternalResponesViewModel<List<GiveCurrencyLogDto>> respones = null;
+            obj = JsonHelper.DeserializeJsonToObject<ExternalRequesViewModel>(Content(User.Identity.Name).Content);
+            List<GiveCurrencyLogDto> giveCurrency = new List<GiveCurrencyLogDto>();
+            var sysCode = SysCode.Ok;
+            string signList = obj.Data.SignList;
+            string[] strSign = signList.Split(',');
+            foreach (var item in strSign)
+            {
+                var result = await _recharge.GetSignAsync(item);
+                if (result != null)
+                {
+                    giveCurrency.Add(result);
+                }
+            }
+            respones = new ExternalResponesViewModel<List<GiveCurrencyLogDto>>(sysCode, _sys, sysCode == SysCode.Ok ? giveCurrency : null);
+            return respones;
+        }
+
+        /// <summary>
+        /// 根据用户id查询渠道(先查ibc渠道哦再查用户渠道表没有其次查用户注册渠道)
+        /// author:白尚德
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("GetUserIdChannel")]
+        public async Task<ExternalResponesViewModel<object>> GetUserIdChannel([FromBody]ExternalRequesViewModel obj)
+        {
+            ExternalResponesViewModel<object> respones = null;
+            obj = JsonHelper.DeserializeJsonToObject<ExternalRequesViewModel>(Content(User.Identity.Name).Content);
+            var sysCode = SysCode.Ok;
+            long userid = (long)obj.Data.userId;
+            DateTime times = DateTime.Parse((string)obj.Data.stime);
+            UserChannelDto userChannel = new UserChannelDto();
+            var ibcChannel = _routine.GetIbcChannel(Convert.ToString(userid), times);
+            var userchannel = await _routine.GetUserIdChannelIdAsync(userid);
+            if (ibcChannel != null)
+            {
+                userChannel.ChannelId = ibcChannel;
+                userChannel.ChannelType = "1"; //1 为ibc渠道 2 为用户渠道或注册渠道
+            }
+            else if (userchannel != null)
+            {
+                userChannel.ChannelId = userchannel;
+                userChannel.ChannelType = "2";
+            }
+            else
+            {
+                sysCode = SysCode.IdIsNull;
+            }
+
+            respones = new ExternalResponesViewModel<object>(sysCode, _sys, sysCode == SysCode.Ok ? userChannel : null);
+            return respones;
+        }
+
+        /// <summary>
+        /// 获取渠道树
+        /// author:白尚德</summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("GetChannelTree")]
+        public async Task<ExternalResponesViewModel<ChnnelList>> GetChannelTree([FromBody]ExternalRequesViewModel obj)
+        {
+            ExternalResponesViewModel<ChnnelList> respones = null;
+            obj = JsonHelper.DeserializeJsonToObject<ExternalRequesViewModel>(Content(User.Identity.Name).Content);
+            var sysCode = SysCode.Ok;
+            string strKey = obj.Data.key;
+            ChnnelList channelTree = new ChnnelList();
+            var reandom = _sys.GetRandom();
+            if (strKey.IsBlank())
+            {
+
+                channelTree.ChnneltreesList = await _channel.GetChnnelIbcAsync();
+                channelTree.key = reandom;
+                RedisHelper.StringSet(reandom, channelTree, 10080, RedisFolderEnum.ChannelTree, RedisEnum.Nine);
+            }
+            else if (strKey.IsNotBlank())
+            {
+                if (RedisHelper.KeyExists(strKey, RedisFolderEnum.ChannelTree, RedisEnum.Nine))
+                {
+                    sysCode = SysCode.DataisNoUpt;
+                }
+                else
+                {
+                    channelTree.ChnneltreesList = await _channel.GetChnnelIbcAsync();
+                    channelTree.key = reandom;
+                    RedisHelper.StringSet(reandom, channelTree, 10080, RedisFolderEnum.ChannelTree, RedisEnum.Nine);
+                }
+            }
+            else
+            {
+                sysCode = SysCode.ErrParameter;
+            }
+            respones = new ExternalResponesViewModel<ChnnelList>(sysCode, _sys, sysCode == SysCode.Ok ? channelTree : null);
+            return respones;
+        }
+
+        /// <summary>
+        /// 根据时间获取各个渠道注册人数
+        /// author:白尚德</summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("GetUserNumber")]
+        public async Task<ExternalResponesViewModel<List<RegisterNumberDto>>> GetUserNumber([FromBody]ExternalRequesViewModel obj)
+        {
+            ExternalResponesViewModel<List<RegisterNumberDto>> respones = null;
+            obj = JsonHelper.DeserializeJsonToObject<ExternalRequesViewModel>(Content(User.Identity.Name).Content);
+            List<RegisterNumberDto> userCount = null;
+            var sysCode = SysCode.Ok;
+
+            DateTime startTime = DateTime.Parse((string)obj.Data.StartTime);
+            DateTime overTime = DateTime.Parse((string)obj.Data.OverTime);
+            userCount = await _user.GetResignCountAsync(startTime, overTime);
+            if (userCount.Count == 0)
+            {
+                sysCode = SysCode.IdIsNull;
+            }
+
+            respones = new ExternalResponesViewModel<List<RegisterNumberDto>>(sysCode, _sys, sysCode == SysCode.Ok ? userCount : null);
+            return respones;
+        }
+
+
+        //end
     }
 }

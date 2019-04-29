@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using ZsqApp.Core.Models.Routine;
 
 namespace ZsqApp.Core.Interfaces.Channel
 {
@@ -17,5 +18,11 @@ namespace ZsqApp.Core.Interfaces.Channel
         /// <param name="channel"></param>
         /// <returns></returns>
        bool ChannelIsExist(string channel);
+
+        /// <summary>
+        /// 获取渠道树
+        /// </summary>
+        /// <returns></returns>
+        Task<List<ChnnelMenuGroup>> GetChnnelIbcAsync();
     }
 }

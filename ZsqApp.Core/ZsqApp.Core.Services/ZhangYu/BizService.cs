@@ -17,6 +17,7 @@ using ZsqApp.Core.Models.ZhangYuRequest;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using log4net;
+using static ZsqApp.Core.Models.ZhangYuRequest.NewMatchTypeList;
 
 namespace ZsqApp.Core.Services.ZhangYu
 {
@@ -242,6 +243,31 @@ namespace ZsqApp.Core.Services.ZhangYu
             if (response.Code == "0")
             {
                 var vResult = JsonHelper.DeserializeJsonToObject<MatchTypeList>(_sys.Base64Decode(response.Data));
+                return vResult;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 新获取竞猜游戏列表
+        /// author：白尚德 
+        /// </summary>
+        /// <returns></returns>
+        public MatchList NewAcquireGuessMatch()
+        {
+            ZhangYuRequest Request = new ZhangYuRequest();
+            Request.AppKey = _options.Value.AppKey;
+            Request.Data = null;
+            Request.Sign = _sys.Sha512Encode($"{Request.AppKey}{_options.Value.AppSecret}{Request.Data}{Request.Nonce}{Request.Timestamp}");
+            string strUrl = string.Format(_options.Value.Url, "v1", "sportTypeList");
+            string strJson = JsonHelper.SerializeObject(Request);
+            var url = "https://guessgame.funhainan.com/v1/sportTypeList";
+            _log.Info($"获取竞猜游戏列表请求参数{strJson}");
+            var response = JsonHelper.DeserializeJsonToObject<NewMatchTypeList>(_sys.PostJsonData(url, strJson, Encoding.UTF8));
+            _log.Info($"获取竞猜游戏列表返回值{JsonHelper.SerializeObject(response)}");
+            if (response.code == "0")
+            {
+                var vResult = response.data;
                 return vResult;
             }
             return null;

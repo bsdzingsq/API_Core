@@ -105,5 +105,12 @@ namespace ZsqApp.Core.Interfaces.AccoutSystem
         /// <param name="forderId"></param>
         /// <returns></returns>
         CostStatusResult CostOrderStatus_php(string forderId);
+
+        /// <summary>
+        /// 从php获取公众号充值订单
+        /// </summary>
+        /// <param name="strJson"></param>
+        /// <returns></returns>
+        List<orderInfoList> GetRechargeTypes(string strJson);
     }
 }

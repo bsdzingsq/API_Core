@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using ZsqApp.Core.Models.Currency;
 using ZsqApp.Core.Models.Recharge;
 using ZsqApp.Core.ViewModel.Recharge;
 
@@ -163,11 +164,29 @@ namespace ZsqApp.Core.Interfaces.Recharge
         Task<bool> JuderOrderIsimplemeAsync(string order);
 
         /// <summary>
-        /// 海峡竞技生成支付宝订单
+        /// 获取充值类型
         /// author:白尚德
-        /// <param name="recharge"></param>
-        /// <param name="order"></param>
+        /// </summary>
+        /// <param name="userid"></param>
+        /// <param name="orderid"></param>
         /// <returns></returns>
         string CreateAlipaySign(RechargeCommodityDto recharge, string order);
+
+        /// <summary>
+        /// 获取充值类型
+        /// author:白尚德
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="orderid"></param>
+        /// <returns></returns>
+        Task<RechargeTypeDto> GetRechargeAsync(string orderid);
+
+        /// <summary>
+        /// 获取赠币类型
+        /// author:白尚德
+        /// </summary>
+        /// <param name="orderid"></param>
+        /// <returns></returns>
+        Task<GiveCurrencyLogDto> GetSignAsync(string orderid);
     }
 }

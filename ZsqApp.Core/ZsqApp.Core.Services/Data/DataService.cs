@@ -32,7 +32,7 @@ namespace ZsqApp.Core.Services.Data
         /// </summary>
         private readonly IMapper _mapper;
 
-        private readonly IUserTask _userTask;
+       // private readonly IUserTask _userTask;
 
 
         public DataService(HainanContext hainanContext, FunHaiNanContext funHaiNanContext, IMapper mapper)
@@ -145,8 +145,8 @@ namespace ZsqApp.Core.Services.Data
             }
             catch (Exception ex)
             {
-
-                throw;
+                
+                throw ex;
             }
 
         }

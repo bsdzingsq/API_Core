@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ZsqApp.Core.Models.User;
 using ZsqApp.Core.Models.ZhangYuRequest;
+using static ZsqApp.Core.Models.ZhangYuRequest.NewMatchTypeList;
 
 namespace ZsqApp.Core.Interfaces.ZhangYu
 {
@@ -71,6 +72,12 @@ namespace ZsqApp.Core.Interfaces.ZhangYu
         /// </summary>
         /// <returns></returns>
         MatchTypeList AcquireGuessMatch();
+
+        /// 新获取竞猜游戏列表
+        /// author：白尚德
+        /// </summary>
+        /// <returns></returns>
+        MatchList NewAcquireGuessMatch();
 
         /// <summary>
         /// 赠送货币

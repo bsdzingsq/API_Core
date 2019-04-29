@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using ZsqApp.Core.Entity.MongoEntity;
 using ZsqApp.Core.Models.Routine;
 
 namespace ZsqApp.Core.Interfaces.Routine
@@ -95,5 +97,36 @@ namespace ZsqApp.Core.Interfaces.Routine
         /// <returns></returns>
         Task<StraitAppVersionDto> VersionUpgradesAsync(long versionCode, int platform);
 
+        /// <summary>
+        /// 根据用户id查询渠道
+        /// author：白尚德
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<string> GetUserIdChannelIdAsync(long userId);
+
+        /// <summary>
+        ///  提报ibc数据写人mongo
+        ///  author:白尚德
+        ///  </summary>
+        /// <param name="ibeaconlocus"></param>
+        void WriteIbcInfo(ibeaconlocus ibeaconlocus);
+
+        /// <summary>
+        /// 更新设备表电量
+        /// author:白尚德
+        /// </summary>
+        /// <param name="battery"></param>
+        /// <returns></returns>
+        Task<bool> UpdateIbcAsync(int major, int minor, string uuid, int battery);
+
+        /// <summary>
+        /// 从mongo获取用户ibc渠道
+        /// author:白尚德
+        /// </summary>
+        /// <param name="userid"></param>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        string GetIbcChannel(string userid, DateTime dateTime);
     }
 }
