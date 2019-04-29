@@ -1,25 +1,10 @@
-FROM microsoft/aspnetcore:2.0 AS base
+# 声明使用的基础镜像
+FROM microsoft/aspnetcore:2.0-nanoserver-1803 AS base 
+# 设置工作目录
 WORKDIR /app
-EXPOSE 80
-
-FROM microsoft/aspnetcore-build:2.0 AS build
-WORKDIR /src
-COPY ["ZsqApp.Core.WebApi/ZsqApp.Core.WebApi/ZsqApp.Core.WebApi.csproj", "ZsqApp.Core.WebApi/ZsqApp.Core.WebApi/"]
-COPY ["ZsqApp.Core.Entity/ZsqApp.Core.Entity.csproj", "ZsqApp.Core.Entity/"]
-COPY ["ZsqApp.Core.Models/ZsqApp.Core.Models.csproj", "ZsqApp.Core.Models/"]
-COPY ["ZsqApp.Core.Infrastructure/ZsqApp.Core.Infrastructure.csproj", "ZsqApp.Core.Infrastructure/"]
-COPY ["ZsqApp.Core.Services/ZsqApp.Core.Services.csproj", "ZsqApp.Core.Services/"]
-COPY ["ZsqApp.Core.Interfaces/ZsqApp.Core.Interfaces.csproj", "ZsqApp.Core.Interfaces/"]
-COPY ["ZsqApp.Core.ViewModel/ZsqApp.Core.ViewModel.csproj", "ZsqApp.Core.ViewModel/"]
-RUN dotnet restore "ZsqApp.Core.WebApi/ZsqApp.Core.WebApi/ZsqApp.Core.WebApi.csproj"
-COPY . .
-WORKDIR "/src/ZsqApp.Core.WebApi/ZsqApp.Core.WebApi"
-RUN dotnet build "ZsqApp.Core.WebApi.csproj" -c Release -o /app
-
-FROM build AS publish
-RUN dotnet publish "ZsqApp.Core.WebApi.csproj" -c Release -o /app
-
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app .
+# 将本地应用拷贝到 容器 /app/ 目录下 "./"代表的就是/app 因为dockerfile文件和程序文件都在发布文件夹下 所以两个目录是一样的
+COPY ./ ./
+# 设置导出端口
+EXPOSE 5000/tcp
+# 指定应用入口点 NetCore.dll代表的是主程序文件
 ENTRYPOINT ["dotnet", "ZsqApp.Core.WebApi.dll"]
